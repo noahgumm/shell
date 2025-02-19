@@ -20,6 +20,11 @@ public:
      */
     void run();
 
+    /**
+     * @brief Prints the current working directory to the user
+     */
+     void PrintWorkingDirectory();
+
 private:
     /**
      * @brief Executes a command using fork and execv.
