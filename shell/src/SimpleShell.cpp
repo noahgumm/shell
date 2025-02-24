@@ -1,5 +1,17 @@
+/**
+ * Base header file and functionality provided by professor
+ * Functions implemented by the student will have *Student* tagged in the comments
+ * Noah Gumm
+ * 02/23/2025
+*/
+
 #include "../include/SimpleShell.h"
 #include <iostream>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -7,19 +19,19 @@ void SimpleShell::execute(const vector<string>& argv)
 {
     int status;
     pid_t child;
+    std::string currentWorkingDirectory;
 
-    //Print working directory before user proviedes input
+    //*Student* Print working directory before user provides input
     //May remove later, useful for testing
-    PrintWorkingDirectory();
+    std::string currentDirectory = GetWorkingDirectory();
+    std::cout << currentDirectory << std::endl;
 
     /*
         Implement the following shell commands:
         /bin/date
-        cd /usr
-        pwd
+        cd /usr 
 
         mkdir directory_name
-        ls -F
         cat file_name
         ~ reference home directory
     */
@@ -64,8 +76,6 @@ void SimpleShell::execute(const vector<string>& argv)
             _exit(1);
         }
 
-        string exec_path = "/bin/" + argv[0];
-
         // Prepare arguments for exec (must end with nullptr)
         vector<const char*> args;
         for (const auto& arg : argv) {
@@ -73,31 +83,15 @@ void SimpleShell::execute(const vector<string>& argv)
         }
         args.push_back(nullptr);
 
-        // Execute the ls command. You need to change it to satisfy the assignment requirements
-        if (execl("/bin/ls", "ls", "/", (char *)0) == -1)
-        {
-            perror("execl failed"); // Print error message
-            _exit(1);
-        }
+        // Handle commands here
+        if(argv[0] == "pwd") std::cout << currentDirectory << std::endl; //PWD (Print working directory)
+        else if(argv[0] == "ls") List_Directory(argv, currentWorkingDirectory); //ls -F <directory> (List contents of directory)
+        else std::cout << "Invalid command" << std::endl; //Handle unknown input
+    
     }
     else {
         perror("fork failed"); // Error handling if fork fails
         exit(1);
-    }
-}
-
-//Function to print working directory
-void SimpleShell::PrintWorkingDirectory(){
-    //Create a buffer for the directory
-    //Assume it will be no larger than 1024 characters
-    char buf[1024];
-    if(getcwd(buf, sizeof(buf)) != nullptr){
-        //Print current working directory to the user
-        cout << buf << endl;
-    }
-    else{
-        //Print an error if not succesful
-        perror("Error");
     }
 }
 
@@ -142,6 +136,86 @@ void SimpleShell::run()
         // Execute the user command
         execute(tokens);
     }
+}
+
+/*
+ *Student implemented functions below here
+*/
+
+//*Student* Get working directory
+string SimpleShell::GetWorkingDirectory(){
+    //Create a buffer for the directory
+    //Assume it will be no larger than 1024 characters
+    char buf[1024];
+    if(getcwd(buf, sizeof(buf)) != nullptr){
+        //Return current working directory as string
+        return std::string(buf);
+    }
+    else{
+        //Print an error if not succesful
+        perror("Error getting directory");
+    }
+    
+    //If there is an error we return nothing
+    return "";
+}
+
+void SimpleShell::List_Directory(const vector<string>& argv, const string& currentDirectory){
+    int size = argv.size();
+    std::string path = currentDirectory; //Default to current directory for file listing
+    bool showFileTypes = false;
+
+    if (size == 2) { //Handle ls -F or ls <directory>
+        //If the second command isn't -F we know it is a directory
+        if(argv[1] != "-F"){
+            path = argv[1];
+        } else {
+            showFileTypes = true;
+        }
+    } else if (size == 3) { //Handle ls -F <directory>
+            showFileTypes = true;
+            path = argv[2];
+    } else if (size > 3) {
+        std::cerr << "Command 'ls' was given an invalid number of arguments" << std::endl;
+    }
+
+    //Attempt to open the directory
+    DIR* dir = opendir(path.c_str());
+    if(!dir){
+        perror("Error opening directory to list");
+        return;
+    }
+
+    //Structures fore storing directories and file stats
+    struct dirent* directoryEntry;
+    struct stat fileStat;
+
+    //Read all directories
+    while((directoryEntry = readdir(dir)) != nullptr){
+        std::string fileName = directoryEntry->d_name;
+        std::string fullPath = path + "/" + fileName;
+        std::string marker = "";
+
+        if(showFileTypes){
+            //Attempt to get the file stats
+            if (stat(fullPath.c_str(), &fileStat) == -1) {
+                perror("stat failed");
+                continue;
+            }
+
+            // Determine file type and set marker to appropriate symbol
+            if (S_ISDIR(fileStat.st_mode)) marker = "/"; //Directory
+            else if (S_ISREG(fileStat.st_mode) && (fileStat.st_mode & S_IXUSR)) marker = "*";  // Executable
+            else if (S_ISLNK(fileStat.st_mode)) marker = "@";  // Symlink
+            else if (S_ISFIFO(fileStat.st_mode)) marker = "|";  // Pipe
+            else if (S_ISSOCK(fileStat.st_mode)) marker = "=";  // Socket
+        }
+
+        //Handle printing the file and its type
+        std::cout << fileName << marker << std::endl;
+    }
+
+    closedir(dir);
 }
 
 int main()

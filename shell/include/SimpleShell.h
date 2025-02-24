@@ -1,11 +1,16 @@
+/**
+ * Base header file and functionality provided by professor
+ * Functions implemented by the student will have *Student* tagged in the brief
+ * Noah Gumm
+ * 02/23/2025
+ */
+
 #ifndef SIMPLE_SHELL_H
 #define SIMPLE_SHELL_H
 
 #include <iostream>
 #include <vector>
 #include <string>
-#include <unistd.h>
-#include <sys/wait.h>
 
 /**
  * Doxygen comment
@@ -21,9 +26,14 @@ public:
     void run();
 
     /**
-     * @brief Prints the current working directory to the user
+     * @brief *Student* Gets the current working directory as a string.
      */
-     void PrintWorkingDirectory();
+     std::string GetWorkingDirectory();
+
+    /**
+     * @brief *Student* Lists files in a directory.
+     */
+     void List_Directory(const std::vector<std::string>& argv, const std::string& currentDirectory);
 
 private:
     /**

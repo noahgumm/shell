@@ -1,3 +1,6 @@
+# Author: Noah Gumm
+# 02/23/2025
+
 # Compiler and flags
 CXX = g++
 CXXFLAGS = -Iinclud -std=c++11
