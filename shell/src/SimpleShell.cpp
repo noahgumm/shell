@@ -12,6 +12,9 @@
 #include <sys/wait.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 
 using namespace std;
 
@@ -19,12 +22,6 @@ void SimpleShell::execute(const vector<string>& argv)
 {
     int status;
     pid_t child;
-    std::string currentWorkingDirectory;
-
-    //*Student* Print working directory before user provides input
-    //May remove later, useful for testing
-    std::string currentDirectory = GetWorkingDirectory();
-    std::cout << currentDirectory << std::endl;
 
     /*
         Implement the following shell commands:
@@ -40,15 +37,18 @@ void SimpleShell::execute(const vector<string>& argv)
     //This is because we want the children to inherit the new working directory
     //Check if first argument is cd
     if(argv[0] == "cd") {
-        
+    
         //If size of argv is less than two than the user did not provide a directory after the cd command
         if(argv.size() < 2){
             std::cout << "CD was not given an argument" << std::endl;
         }
         else{
+            std::string path = (argv[1][0] == '~') ? getenv("HOME") : argv[1];
+
             //If chdir() does not return successful(1) then print an error to the user
-            if(chdir(argv[1].c_str()) != 0){
+            if(chdir(path.c_str()) != 0){
                 perror("Error");
+                return;
             }
 
         }
@@ -84,8 +84,11 @@ void SimpleShell::execute(const vector<string>& argv)
         args.push_back(nullptr);
 
         // Handle commands here
-        if(argv[0] == "pwd") std::cout << currentDirectory << std::endl; //PWD (Print working directory)
-        else if(argv[0] == "ls") List_Directory(argv, currentWorkingDirectory); //ls -F <directory> (List contents of directory)
+        if(argv[0] == "pwd") std::cout << GetWorkingDirectory() << std::endl; //PWD (Print working directory)
+        else if(argv[0] == "ls") List_Directory(argv); //ls -F <directory> (List contents of directory)
+        else if(argv[0] == "mkdir") MakeDirectory(argv);
+        else if (argv[0] == "cat") Concatenate(argv);
+        else if (argv[0] == "/date" || argv[0] == "/bin/date") PrintDate();
         else std::cout << "Invalid command" << std::endl; //Handle unknown input
     
     }
@@ -143,7 +146,7 @@ void SimpleShell::run()
 */
 
 //*Student* Get working directory
-string SimpleShell::GetWorkingDirectory(){
+std::string SimpleShell::GetWorkingDirectory(){
     //Create a buffer for the directory
     //Assume it will be no larger than 1024 characters
     char buf[1024];
@@ -160,9 +163,9 @@ string SimpleShell::GetWorkingDirectory(){
     return "";
 }
 
-void SimpleShell::List_Directory(const vector<string>& argv, const string& currentDirectory){
+void SimpleShell::List_Directory(const std::vector<std::string>& argv){
     int size = argv.size();
-    std::string path = currentDirectory; //Default to current directory for file listing
+    std::string path = GetWorkingDirectory(); //Default to current directory for file listing
     bool showFileTypes = false;
 
     if (size == 2) { //Handle ls -F or ls <directory>
@@ -199,7 +202,7 @@ void SimpleShell::List_Directory(const vector<string>& argv, const string& curre
         if(showFileTypes){
             //Attempt to get the file stats
             if (stat(fullPath.c_str(), &fileStat) == -1) {
-                perror("stat failed");
+                perror("stat error");
                 continue;
             }
 
@@ -216,6 +219,61 @@ void SimpleShell::List_Directory(const vector<string>& argv, const string& curre
     }
 
     closedir(dir);
+}
+
+void SimpleShell::Concatenate(const std::vector<std::string>& argv){
+    //Check to ensure user provided an argument along with cat
+    if(argv.size() < 2){
+        std::cerr << "Cat requires a file name as an argument" << std::endl;
+    } else {
+        //Open returns an integer based on the files descriptor
+        //If open fails then it returns -1
+        int file = open(argv[1].c_str(), O_RDONLY);
+
+        if(file < 0){
+            perror("Sys Error: Cat failed");
+        } else {
+            //Read the file in pieces and send to std out
+            char buffer[1024];
+            ssize_t contents;
+
+            while((contents = read(file, buffer, sizeof(buffer))) > 0){
+                write(STDOUT_FILENO, buffer, contents);
+            }
+
+            close(file);
+        }
+    }
+}
+
+void SimpleShell::MakeDirectory(const std::vector<std::string>& argv){
+    if(argv.size() < 2){
+        std::cerr << "mkdir needs a directory name" << std::endl;
+    }
+
+    //Default file permissions
+    mode_t mode = 0755;
+
+    if(mkdir(argv[1].c_str(), mode) == -1){
+        perror("Can not create directory");
+    } else {
+        std::cout << "Directory created" << std::endl;
+        return;
+    }
+}
+
+void SimpleShell::PrintDate(){
+    time_t now = time(nullptr);  // Get the current time
+    struct tm* localTime = localtime(&now); // Convert to local time
+
+    // Format and print the date & time
+    std::cout << (localTime->tm_year + 1900) << "-"
+              << (localTime->tm_mon + 1) << "-"
+              << localTime->tm_mday << " "
+              << localTime->tm_hour << ":"
+              << localTime->tm_min << ":"
+              << localTime->tm_sec
+              << std::endl;
 }
 
 int main()

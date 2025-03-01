@@ -2,13 +2,17 @@
 
 This is a simple shell program written in C++ as part of an educational exercise. The program implements basic shell functionality such as reading commands from the user, parsing the input, and executing commands by creating child processes. However, it purposely lacks advanced shell features and is left incomplete as an assignment for students to further implement.
 
-NOTE: We are to avoid using the exec() functions when possible
+NOTE: We are to avoid using the exec() functions when possible. Attempt to use specific system calls.
 
-Implemented Commands <!-- Commands implemented by the student (Noah Gumm) -->
-- cd (change working directory)
-- pwd (print working directory)
-- ls <!optional>-F <!optional><directory> 
-  (list the files in the provided directory, if no directory is given then it uses the current dirctory, -F includes file types)
+<!-- Commands implemented by the student (Noah Gumm) -->
+Commands:
+- cd <path> (Change working directory.)
+- pwd (print working directory.)
+- ls <!optional>-F <!optional><directory_name> 
+  (list the files in the provided directory, if no directory is given then it uses the current dirctory, -F appends file types to the end of file names.)
+- mkdir <directory_name> (Make a new directory.)
+- cat <file_name> (Print the contents of a file.)
+- /date or /bin/date (Prints the current date.)
 
 
 ## Files Included

@@ -19,21 +19,36 @@
 class SimpleShell {
 public:
     /**
-     * @brief Starts the shell loop.
-     * 
-     * This method runs the shell's main loop, taking user input, parsing it, and executing commands.
-     */
+    * @brief Starts the shell loop.
+    * 
+    * This method runs the shell's main loop, taking user input, parsing it, and executing commands.
+    */
     void run();
 
     /**
-     * @brief *Student* Gets the current working directory as a string.
-     */
-     std::string GetWorkingDirectory();
+    * @brief *Student* Gets the current working directory as a string.
+    */
+    std::string GetWorkingDirectory();
 
     /**
-     * @brief *Student* Lists files in a directory.
-     */
-     void List_Directory(const std::vector<std::string>& argv, const std::string& currentDirectory);
+    * @brief *Student* Lists files in a directory.
+    */
+    void List_Directory(const std::vector<std::string>& argv);
+
+    /**
+    * @brief *Student* Read, display, and concatenate files.
+    */
+    void Concatenate(const std::vector<std::string>& argv);
+
+    /**
+    * @brief *Student* Make a new directory.
+    */
+    void MakeDirectory(const std::vector<std::string>& argv);
+
+    /**
+    * @brief *Student* Print the date to the user.
+    */
+    void PrintDate();
 
 private:
     /**
