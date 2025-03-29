@@ -1,6 +1,8 @@
 # Simple Shell Program
 
-This is a simple shell program written in C++ as part of an educational exercise. The program implements basic shell functionality such as reading commands from the user, parsing the input, and executing commands by creating child processes. However, it purposely lacks advanced shell features and is left incomplete as an assignment for students to further implement.
+This is a simple shell program written in C++ as part of an educational exercise. 
+The program implements basic shell functionality such as reading commands from the user, parsing the input, and executing commands by creating child processes. 
+However, it purposely lacks advanced shell features and is left incomplete as an assignment for students to further implement.
 
 NOTE: We are to avoid using the exec() functions when possible. Attempt to use specific system calls.
 

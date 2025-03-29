@@ -2,7 +2,7 @@
  * Base header file and functionality provided by professor
  * Functions implemented by the student will have *Student* tagged in the comments
  * Noah Gumm
- * 02/23/2025
+ * 02/28/2025
 */
 
 #include "../include/SimpleShell.h"
@@ -36,25 +36,31 @@ void SimpleShell::execute(const vector<string>& argv)
     //We need to handle changing the current working directory with cd in the parent process, ie no fork needed
     //This is because we want the children to inherit the new working directory
     //Check if first argument is cd
-    if(argv[0] == "cd") {
-    
-        //If size of argv is less than two than the user did not provide a directory after the cd command
-        if(argv.size() < 2){
+    if (argv[0] == "cd") {
+        if (argv.size() < 2) {
             std::cout << "CD was not given an argument" << std::endl;
-        }
-        else{
-            std::string path = (argv[1][0] == '~') ? getenv("HOME") : argv[1];
-
-            //If chdir() does not return successful(1) then print an error to the user
-            if(chdir(path.c_str()) != 0){
+        } else {
+            std::string path = argv[1];
+    
+            // Check if the path starts with ~ and replace it with the home directory
+            if (path[0] == '~') {
+                const char* home = getenv("HOME");  // Get the home directory
+                if (home != nullptr) {
+                    path.replace(0, 1, home);  // Replace the ~ with the actual home directory
+                } else {
+                    std::cerr << "Error: HOME environment variable not set" << std::endl;
+                    return;
+                }
+            }
+    
+            // Change to the target directory
+            if (chdir(path.c_str()) != 0) {
                 perror("Error");
                 return;
             }
-
         }
-        //Skip forking on this execute
-        return;
-    }    
+        return;  // Skip forking for the cd command
+    }
 
 
     // Spawning a child process
@@ -164,85 +170,51 @@ std::string SimpleShell::GetWorkingDirectory(){
 }
 
 void SimpleShell::List_Directory(const std::vector<std::string>& argv){
-    int size = argv.size();
-    std::string path = GetWorkingDirectory(); //Default to current directory for file listing
-    bool showFileTypes = false;
+    pid_t pid = fork();
 
-    if (size == 2) { //Handle ls -F or ls <directory>
-        //If the second command isn't -F we know it is a directory
-        if(argv[1] != "-F"){
-            path = argv[1];
-        } else {
-            showFileTypes = true;
-        }
-    } else if (size == 3) { //Handle ls -F <directory>
-            showFileTypes = true;
-            path = argv[2];
-    } else if (size > 3) {
-        std::cerr << "Command 'ls' was given an invalid number of arguments" << std::endl;
-    }
-
-    //Attempt to open the directory
-    DIR* dir = opendir(path.c_str());
-    if(!dir){
-        perror("Error opening directory to list");
+    if (pid < 0) {
+        perror("fork failed");
         return;
-    }
-
-    //Structures fore storing directories and file stats
-    struct dirent* directoryEntry;
-    struct stat fileStat;
-
-    //Read all directories
-    while((directoryEntry = readdir(dir)) != nullptr){
-        std::string fileName = directoryEntry->d_name;
-        std::string fullPath = path + "/" + fileName;
-        std::string marker = "";
-
-        if(showFileTypes){
-            //Attempt to get the file stats
-            if (stat(fullPath.c_str(), &fileStat) == -1) {
-                perror("stat error");
-                continue;
-            }
-
-            // Determine file type and set marker to appropriate symbol
-            if (S_ISDIR(fileStat.st_mode)) marker = "/"; //Directory
-            else if (S_ISREG(fileStat.st_mode) && (fileStat.st_mode & S_IXUSR)) marker = "*";  // Executable
-            else if (S_ISLNK(fileStat.st_mode)) marker = "@";  // Symlink
-            else if (S_ISFIFO(fileStat.st_mode)) marker = "|";  // Pipe
-            else if (S_ISSOCK(fileStat.st_mode)) marker = "=";  // Socket
+    } else if (pid == 0) {
+        // Child process: Execute the system ls command
+        // If -F is provided, append it to the ls command
+        if (argv.size() == 1) {
+            execlp("ls", "ls", nullptr);  // Execute ls (no arguments)
+        } else if (argv.size() == 2 && argv[1] == "-F") {
+            execlp("ls", "ls", "-F", nullptr);  // Execute ls -F
+        } else if (argv.size() >= 2) {
+            execlp("ls", "ls", argv[1].c_str(), nullptr);  // Execute ls <directory>
         }
-
-        //Handle printing the file and its type
-        std::cout << fileName << marker << std::endl;
+        // If execlp fails, print an error and exit
+        perror("execlp failed");
+        _exit(1);
+    } else {
+        // Parent process: Wait for the child to finish
+        int status;
+        waitpid(pid, &status, 0);
     }
-
-    closedir(dir);
 }
 
 void SimpleShell::Concatenate(const std::vector<std::string>& argv){
-    //Check to ensure user provided an argument along with cat
-    if(argv.size() < 2){
+    if (argv.size() < 2) {
         std::cerr << "Cat requires a file name as an argument" << std::endl;
+        return;
+    }
+
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        perror("fork failed");
+        return;
+    } else if (pid == 0) {
+        // Child process: Execute the system cat command
+        execlp("cat", "cat", argv[1].c_str(), nullptr);
+        perror("execlp failed"); // If execlp fails, print an error
+        _exit(1);
     } else {
-        //Open returns an integer based on the files descriptor
-        //If open fails then it returns -1
-        int file = open(argv[1].c_str(), O_RDONLY);
-
-        if(file < 0){
-            perror("Sys Error: Cat failed");
-        } else {
-            //Read the file in pieces and send to std out
-            char buffer[1024];
-            ssize_t contents;
-
-            while((contents = read(file, buffer, sizeof(buffer))) > 0){
-                write(STDOUT_FILENO, buffer, contents);
-            }
-
-            close(file);
-        }
+        // Parent process: Wait for the child to finish
+        int status;
+        waitpid(pid, &status, 0);
     }
 }
 
