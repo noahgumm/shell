@@ -6,8 +6,7 @@ However, it purposely lacks advanced shell features and is left incomplete as an
 
 NOTE: We are to avoid using the exec() functions when possible. Attempt to use specific system calls.
 
-<!-- Commands implemented by the student (Noah Gumm) -->
-Commands:
+Supported Commands:
 - cd <path> (Change working directory.)
 - pwd (print working directory.)
 - ls <!optional>-F <!optional><directory_name> 
@@ -15,6 +14,8 @@ Commands:
 - mkdir <directory_name> (Make a new directory.)
 - cat <file_name> (Print the contents of a file.)
 - /date or /bin/date (Prints the current date.)
+- < For For input redirection
+- \> For output redirection
 
 
 ## Files Included
@@ -25,6 +26,7 @@ Commands:
 
 ## How to Compile and Run
 
+You must be in the same directory as the makefile (the inner 'shell' directory) in order to run the makefile commands.
 ```bash
 make  # Compiles the program and then runs the executable
 make compile  # Compiles the source code into an executable located in the bin/ directory
