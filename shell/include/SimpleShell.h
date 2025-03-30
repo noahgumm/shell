@@ -1,6 +1,5 @@
 /**
- * Base header file and functionality provided by professor
- * Functions implemented by the student will have *Student* tagged in the brief
+ * Base header file and functionality provided by Dr. Essa Imhmed
  * Noah Gumm
  * 02/28/2025
  */
@@ -26,27 +25,27 @@ public:
     void run();
 
     /**
-    * @brief *Student* Gets the current working directory as a string.
+    * @brief Gets the current working directory as a string.
     */
     std::string GetWorkingDirectory();
 
     /**
-    * @brief *Student* Lists files in a directory.
+    * @brief Lists files in a directory.
     */
     void List_Directory(const std::vector<std::string>& argv);
 
     /**
-    * @brief *Student* Read, display, and concatenate files.
+    * @brief Read, display, and concatenate files.
     */
     void Concatenate(const std::vector<std::string>& argv);
 
     /**
-    * @brief *Student* Make a new directory.
+    * @brief Make a new directory.
     */
     void MakeDirectory(const std::vector<std::string>& argv);
 
     /**
-    * @brief *Student* Print the date to the user.
+    * @brief Print the date to the user.
     */
     void PrintDate();
 
