@@ -5,6 +5,8 @@ The program implements basic shell functionality such as reading commands from t
 However, it purposely lacks advanced shell features and is left incomplete as an assignment for students to further implement.
 
 NOTE: We are to avoid using the exec() functions when possible. Attempt to use specific system calls.
+NOTE 2: Code is a bit of a mess and could have used more structure or possible even be split into multiple files. But for the scale of the project one file seems to be fine.
+
 
 Supported Commands:
 - cd <path> (Change working directory.)
@@ -16,6 +18,8 @@ Supported Commands:
 - /date or /bin/date (Prints the current date.)
 - < For For input redirection
 - \> For output redirection
+- wc to count words, lines, and characters
+- | pipes to pass data to commands
 
 
 ## Files Included
@@ -28,7 +32,7 @@ Supported Commands:
 
 You must be in the same directory as the makefile (the inner 'shell' directory) in order to run the makefile commands.
 ```bash
-make  # Compiles the program and then runs the executable
-make compile  # Compiles the source code into an executable located in the bin/ directory
-make run  # Executes the compiled program
-make clean  # Deletes the object files and the executable from the bin/ directory
+make  - Compiles the program and runs the executable
+make compile  - Compiles the source code into an executable located in the bin/ directory
+make run  - Executes the compiled program
+make clean  - Deletes the object files and the executable from the bin/ directory

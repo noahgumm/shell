@@ -1,7 +1,7 @@
 /**
  * Base header file and functionality provided by Dr. Essa Imhmed
  * Noah Gumm
- * 02/28/2025
+ * 04/28/2025
  */
 
 #ifndef SIMPLE_SHELL_H
@@ -33,6 +33,11 @@ public:
     * @brief Lists files in a directory.
     */
     void List_Directory(const std::vector<std::string>& argv);
+
+    /**
+    * @brief Gets the number of words, lines, and characters in a file.
+    */
+    void WordCount(const std::vector<std::string>& argv);
 
     /**
     * @brief Read, display, and concatenate files.
